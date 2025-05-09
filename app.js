@@ -1,86 +1,65 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var prompt = require('prompt-sync')();
-var HangmanGame = /** @class */ (function () {
-    function HangmanGame(word, attempts) {
-        this.wordToGuess = word.toUpperCase();
-        this.guessedLetters = [];
-        this.attemptsLeft = attempts;
-        console.log("Welcome to Hangman!");
-        this.displayGameState();
-    }
-    HangmanGame.prototype.displayGameState = function () {
-        var display = "";
-        for (var _i = 0, _a = this.wordToGuess; _i < _a.length; _i++) {
-            var letter = _a[_i];
-            if (this.guessedLetters.includes(letter)) {
-                display += letter + " ";
+function App() {
+    var Game = /** @class */ (function () {
+        function Game() {
+            this.lettersGuessed = [];
+            this.attempts = 0;
+            this.maxAttempts = 6;
+        }
+        return Game;
+    }());
+    var wordList = ['typescript', 'javascript', 'react', 'python', 'django'];
+    var getWord = function () {
+        var currentGameWord = new Game();
+        currentGameWord.secretWord = wordList[Math.floor(Math.random() * wordList.length)];
+        var displayWord = '';
+        for (var dashes = 0; dashes < currentGameWord.secretWord.length; dashes++) {
+            displayWord += '_';
+        }
+        console.log(displayWord);
+        currentGameWord.displayedWord = displayWord;
+        return currentGameWord;
+    };
+    var updatedDisplayWord = function (secretWord, guessedLetter, currentDisplayWord) {
+        var displayedLetters = currentDisplayWord.split('');
+        for (var index = 0; index < secretWord.length; index++) {
+            if (secretWord[index] === guessedLetter) {
+                displayedLetters[index] = secretWord[index];
+            }
+        }
+        return displayedLetters.join('');
+    };
+    var Play = function () {
+        var currentGameWord = getWord();
+        while (currentGameWord.attempts < currentGameWord.maxAttempts && currentGameWord.displayedWord.includes('_')) {
+            var guess = prompt('Guess a letter: ');
+            if (currentGameWord.lettersGuessed.includes(guess)) {
+                console.log('You already guessed that letter.');
+            }
+            currentGameWord.lettersGuessed.push(guess);
+            console.log('You guessed:', guess);
+            console.log('Guessed letters:', currentGameWord.lettersGuessed);
+            if (currentGameWord.secretWord.includes(guess)) {
+                console.log('Correct guess!');
+                currentGameWord.displayedWord = updatedDisplayWord(currentGameWord.secretWord, guess, currentGameWord.displayedWord);
             }
             else {
-                display += "_ ";
+                currentGameWord.attempts++;
+                console.log('Incorrect guess!');
             }
+            console.log('Current word:', currentGameWord.displayedWord);
+            console.log('Attempts remaining:', currentGameWord.maxAttempts - currentGameWord.attempts);
         }
-        console.log("Word: ".concat(display.trim()));
-        console.log("Guessed letters: ".concat(this.guessedLetters.join(", ") || "None"));
-        console.log("Attempts left: ".concat(this.attemptsLeft));
-    };
-    HangmanGame.prototype.getGuess = function () {
-        var _a;
-        var guess = (_a = prompt("Guess a letter: ")) === null || _a === void 0 ? void 0 : _a.toUpperCase();
-        if (guess && /^[A-Z]$/.test(guess) && !this.guessedLetters.includes(guess)) {
-            return guess;
-        }
-        else if (guess && this.guessedLetters.includes(guess)) {
-            console.log("You've already guessed that letter.");
-            return this.getGuess(); // Ask again
+        if (!currentGameWord.displayedWord.includes('_')) {
+            console.log('Congratulations! You guessed the word: ', currentGameWord.secretWord);
         }
         else {
-            console.log("Invalid guess. Please enter a single letter (A-Z).");
-            return this.getGuess(); // Ask again
+            console.log('You ran out of attempts. The word was: ', currentGameWord.secretWord);
         }
     };
-    HangmanGame.prototype.playRound = function () {
-        var guess = this.getGuess();
-        if (!guess) {
-            return false; // Should not happen due to the loop in getGuess, but for type safety
-        }
-        this.guessedLetters.push(guess);
-        if (!this.wordToGuess.includes(guess)) {
-            this.attemptsLeft--;
-            console.log("Incorrect guess!");
-        }
-        this.displayGameState();
-        if (this.attemptsLeft === 0) {
-            console.log("You ran out of attempts! The word was: ".concat(this.wordToGuess));
-            return true; // Game over, player lost
-        }
-        if (this.isWordGuessed()) {
-            console.log("Congratulations! You guessed the word!");
-            return true; // Game over, player won
-        }
-        return false; // Game not over
-    };
-    HangmanGame.prototype.isWordGuessed = function () {
-        for (var _i = 0, _a = this.wordToGuess; _i < _a.length; _i++) {
-            var letter = _a[_i];
-            if (!this.guessedLetters.includes(letter)) {
-                return false;
-            }
-        }
-        return true;
-    };
-    HangmanGame.prototype.playGame = function () {
-        console.log("Let's play Hangman!");
-        while (!this.playRound()) {
-            // Continue playing rounds until the game is over
-        }
-    };
-    return HangmanGame;
-}());
-function main() {
-    var wordList = ["JAVASCRIPT", "TYPESCRIPT", "TERMINAL", "GAME", "PROGRAMMING"];
-    var randomIndex = Math.floor(Math.random() * wordList.length);
-    var chosenWord = wordList[randomIndex];
-    var maxAttempts = 6;
-    var game = new HangmanGame(chosenWord, maxAttempts);
-    game.playGame();
+    Play();
 }
-main();
+App();
+exports.default = App;
